@@ -1,0 +1,13 @@
+virtualenv -p /usr/bin/python3.5 venv
+
+该命令可以指定此虚拟环境使用python3.5, 不需要在/usr/bin 中修改python 链接，
+此时python 直接指向python3.5, pip 直接指向pip3。
+
+$ mkdir new_dir
+$ cd new_dir
+$ virtualenv -p /usr/bin/python3.5 venv
+
+# 开启虚拟环境
+$ source venv/bin/activate
+# 关闭虚拟环境
+$ deactivate
