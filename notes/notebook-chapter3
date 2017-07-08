@@ -1,0 +1,98 @@
+第3章 模板
+
+1. 渲染模板
+业务逻辑 | 表现逻辑
+把表现逻辑移到模板中能够提升程序的可维护性。
+模板是一个包含响应文本的文件,其中包含用占位变量表示的动态部分,其具体值只在请求
+的上下文中才能知道。
+使用真实值替换变量,再返回最终得到的响应字符串,这一过程称为渲染。
+
+2. 模板变量
+模板中使用的 {{ name }} 结构表示一个变量,它是一种特殊的占位符,告诉模
+板引擎这个位置的值从渲染模板时使用的数据中获取。
+Jinja2 能识别所有类型的变量,甚至是一些复杂的类型,例如列表、字典和对象。在模板
+中使用变量的一些示例如下:
+	<p>A value from a dictionary: {{ mydict['key'] }}.</p>
+	<p>A value from a list: {{ mylist[3] }}.</p>
+	<p>A value from a list, with a variable index: {{ mylist[myintvar] }}.</p>
+	<p>A value from an object's method: {{ myobj.somemethod() }}.</p>
+
+可以使用过滤器修改变量,过滤器名添加在变量名之后,中间使用竖线分隔。
+	Hello, {{ name|capitalize }}
+
+Jinja2 提供的部分常用过滤器:
+过滤器名   | 说  明
+safe       | 渲染值时不转义
+capitalize | 把值的首字母转换成大写,其他字母转换成小写
+lower      | 把值转换成小写形式
+upper      | 把值转换成大写形式
+title      | 把值中每个单词的首字母都转换成大写
+trim       | 把值的首尾空格去掉
+striptags  | 渲染之前把值中所有的 HTML 标签都删掉
+safe       | 过滤器值得特别说明一下。默认情况下,出于安全考虑
+
+3. 控制结构
+(1) 条件控制语句
+	{ % if user % }
+		Hello, {{ user }}!
+	{ % else % }
+		Hello, Stranger!
+	{ % endif % }
+(2) for循环
+	<ul>
+		{ % for comment in comments % }
+			<li>{{ comment }}</li>
+		{ % endfor % }
+	</ul>
+(3) 宏 macro(类似Python中的函数)
+	{ % macro render_comment(comment) % }
+		<li>{{ comment }}</li>
+	{ % endmacro % }
+	<ul>
+		{ % for comment in comments % }
+			{{ render_comment(comment) }}
+		{ % endfor % }
+	</ul>
+(4) 将宏保存为文件单独使用
+	{ % import 'macros.html' as macros % }
+	<ul>
+		{ % for comment in comments % }
+			{{ macros.render_comment(comment) }}
+		{ % endfor % }
+	</ul>
+	OR:
+	{ % include 'common.html' % }
+(5) 模板继承
+<html>
+	<head>
+		{ % block head % }
+			<title>{ % block title % }{ % endblock % } - My Application</title>
+		{ % endblock % }
+	</head>
+	<body>
+		{ % block body % }
+		{ % endblock % }
+	</body>
+</html>
+上述代码中 block 标签定义的元素可在衍生模板中修改。
+	{ % extends "base.html" % }
+	{ % block title % }Index{ % endblock % }
+	{ % block head % }
+		{{ super() }}
+		<style>
+		</style>
+	{ % endblock % }
+	{ % block body % }
+	<h1>Hello, World!</h1>
+	{ % endblock % }
+4. 链接(url_for)
+针对包含可变部分的动态路由：
+url_for() 辅助函数,它可以使用程序 URL 映射中保存的信息生成 URL
+
+url_for('index') --> '/'
+url_for('index', _external=True) --> 'http:localhost:5000/'
+url_for('user', name='Lin', _external=True) --> 'http:localhost:5000/user/Lin'
+url_for('index', page=2) --> '/?page=2'
+
+5. 本地化
+使用Flask-Moment扩展
