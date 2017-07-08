@@ -47,3 +47,4 @@ redireact()函数用于重定向
 abort()函数接收错误码作为参数，放弃处理该请求
 
 5. Flask扩展
+学习使用Flask-Script
