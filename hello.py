@@ -1,18 +1,44 @@
+from datetime import datetime
+
 from flask import Flask, render_template
 from flask_script import Manager
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
-from datetime import datetime
+from flask_wtf import Form
+from wtforms import StringField, SubmitField
+# Required si going away in WTForms 3.0, use DataRequired
+# from wtforms.validators import Required
+from wtforms.validators import DataRequired
+
+
+# 这个表单中的字段都定义为类变量,类变量的值是相应字段类型的对象。在这个示例中,
+# NameForm 表单中有一个名为 name 的文本字段和一个名为 submit 的提交按钮。 StringField
+# 类表示属性为 type="text" 的 <input> 元素。 SubmitField 类表示属性为 type="submit" 的
+# <input> 元素。字段构造函数的第一个参数是把表单渲染成 HTML 时使用的标号。
+#
+# StringField 构造函数中的可选参数 validators 指定一个由验证函数组成的列表,在接受
+# 用户提交的数据之前验证数据。验证函数 Required() 确保提交的字段不为空。
+class NameForm(Form):
+    name = StringField('What is your name?', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
 
 app = Flask(__name__)
+# SECRET_KEY is used by Flask-WTF
+app.config['SECRET_KEY'] = 'a secret string hard to guess'
 manager = Manager(app)
 bootstrap = Bootstrap(app)
 moment = Moment(app)
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html', current_time=datetime.utcnow())
+    name = None
+    form = NameForm()
+    if form.validate_on_submit():
+        name = form.name.data
+        form.name.data = ''
+    return render_template('index.html', form=form, name=name, current_time=datetime.utcnow())
 
 
 @app.route('/user/<name>')
