@@ -1,0 +1,125 @@
+第5章 数据库
+
+易用性
+如果直接比较数据库引擎和数据库抽象层,显然后者取胜。抽象层,也称为对象关系
+映 射(Object-Relational Mapper,ORM) 或 对 象 文 档 映 射(Object-Document Mapper,
+ODM),在用户不知觉的情况下把高层的面向对象操作转换成低层的数据库指令。
+
+性能
+ORM 和 ODM 把对象业务转换成数据库业务会有一定的损耗。大多数情况下,这种性
+能的降低微不足道,但也不一定都是如此。一般情况下,ORM 和 ODM 对生产率的提
+升远远超过了这一丁点儿的性能降低,所以性能降低这个理由不足以说服用户完全放弃
+ORM 和 ODM。真正的关键点在于如何选择一个能直接操作低层数据库的抽象层,以
+防特定的操作需要直接使用数据库原生指令优化。
+
+可移植性
+选择数据库时,必须考虑其是否能在你的开发平台和生产平台中使用。例如,如果你打
+算利用云平台托管程序,就要知道这个云服务提供了哪些数据库可供选择。
+可移植性还针对 ORM 和 ODM。尽管有些框架只为一种数据库引擎提供抽象层,但其
+他框架可能做了更高层的抽象,它们支持不同的数据库引擎,而且都使用相同的面向对
+象接口。SQLAlchemy ORM 就是一个很好的例子,它支持很多关系型数据库引擎,包
+括流行的 MySQL、Postgres 和 SQLite。
+
+FLask集成度
+选择框架时,你不一定非得选择已经集成了 Flask 的框架,但选择这些框架可以节省
+你编写集成代码的时间。使用集成了 Flask 的框架可以简化配置和操作,所以专门为
+Flask 开发的扩展是你的首选。
+
+---
+1. Flask-SQLAlchemy
+这个 Flask 扩展包装了 SQLAlchemy 框架,简化了在 Flask 程序中使用 SQLAlchemy 
+的操作。SQLAlchemy 是一个很强大的关系型数据库框架,支持多种数据库后台。SQLAlchemy 
+提供了高层 ORM,也提供了使用数据库原生 SQL 的低层功能。
+
+在 Flask-SQLAlchemy 中,数据库使用 URL 指定。最流行的数据库引擎采用的数据库 URL
+格式如表所示。
+                FLask-SQLAlchemy数据库URL
+-------------------------------------------------------------
+数据库引擎      | URL
+----------------|--------------------------------------------
+MySQL           | mysql://username:password@hostname/database
+Postgres        | postgresql://username:password@hostname/database
+SQLite(Unix)    | sqlite:////absolute/path/to/database
+SQLite(Windows) | sqlite:///c:/absolute/path/to/database
+-------------------------------------------------------------
+在这些 URL 中, hostname 表示 MySQL 服务所在的主机,可以是本地主机( localhost ),
+也可以是远程服务器。数据库服务器上可以托管多个数据库,因此 database 表示要使用的
+数据库名。如果数据库需要进行认证, username 和 password 表示数据库用户密令。
+
+SQLite 数 据 库 不 需 要 使 用 服 务 器, 因 此 不 用 指 定 hostname 、 username 和
+password 。URL 中的 database 是硬盘上文件的文件名。
+
+程序使用的数据库 URL 必须保存到 Flask 配置对象的 SQLALCHEMY_DATABASE_URI 键中。配
+置对象中还有一个很有用的选项,即 SQLALCHEMY_COMMIT_ON_TEARDOWN 键,将其设为 True
+时,每次请求结束后都会自动提交数据库中的变动。
+
+---
+2. 模型
+模型这个术语表示程序使用的持久化实体。在 ORM 中,模型一般是一个 Python 类,类中
+的属性对应数据库表中的列。
+
+Flask-SQLAlchemy 创建的数据库实例为模型提供了一个基类以及一系列辅助类和辅助函
+数,可用于定义模型的结构。
+
+3. 关系
+
+对表（模型）的操作：增删改查(add, delete, add, query)
+
+步骤：
+1) 创建表;
+2) 增加（修改）python 对象;
+3) 将对象的改动加入数据库会话(db.session);
+4) 提交会话(db.session.commit())
+
+关系型数据库使用关系把不同表中的行联系起来。
+模型的构造函数接受的参数是使用关键字参数指定的模型属性初始值,通过数据库会话管理对数据库
+所做的改动,准备把对象写入数据库之前,先要将其添加到会话中,为了把对象写入数据库,我们要
+调用 commit() 方法提交会话.
+
+>>> admin_role = Role(name='Admin')
+>>> db.session.add(admin_role.id)
+>>> db.session.commit()
+
+数据库会话能保证数据库的一致性。提交操作使用原子方式把会话中的对象全部写入数据
+库。如果在写入会话的过程中发生了错误,整个会话都会失效。如果你始终把相关改动放
+在会话中提交,就能避免因部分更新导致的数据库不一致性。
+数据库会话也可 回滚 。调用 db.session.rollback() 后,添加到数据库会话
+中的所有对象都会还原到它们在数据库时的状态。
+
+4. Flask-Migrate
+使用 Flask-Migrate 实现数据库迁移
+
+使用数据库迁移框架。源码版本控制工具可以跟踪源码文件的变化,
+类似地,数据库迁移框架能跟踪数据库模式的变化,然后增量式的把变化应用到数据库中。
+SQLAlchemy 的主力开发人员编写了一个迁移框架,称为 Alembic。除了直接使用 Alembic 之外,
+Flask 程序还可使用 Flask-Migrate 扩展。
+这个扩展对 Alembic 做了轻量级包装,并集成到 Flask-Script 中,所有操作都通过 
+Flask-Script 命令完成。
+
+1) 创建迁移仓库
+在虚拟环境中安装 Flask-Migrate:
+(venv) $ pip install flask-migrate
+配置 Flask-Migrate:
+>>> from flask_migrate import Migrate, MigrateCommand
+>>> migrate = Migrate(app, db)
+>>> manager.add_command('db', MigrateCommand)
+
+在维护数据库迁移之前,要使用 init 子命令创建迁移仓库:
+(venv) $ python hello.py db init
+这个命令会创建 migrations 文件夹,所有迁移脚本都存放其中。
+数据库迁移仓库中的文件要和程序的其他文件一起纳入版本控制。
+
+2） 创建迁移脚本
+在 Alembic 中,数据库迁移用迁移脚本表示。脚本中有两个函数,分别是 upgrade() 和
+downgrade() 。 upgrade() 函数把迁移中的改动应用到数据库中, downgrade() 函数则将改动
+删除。Alembic 具有添加和删除改动的能力,因此数据库可重设到修改历史的任意一点。
+
+我们可以使用 revision 命令手动创建 Alembic 迁移,也可使用 migrate 命令自动创建。
+手动创建的迁移只是一个骨架, upgrade() 和 downgrade() 函数都是空的,开发者要使用
+Alembic 提供的 Operations 对象指令实现具体操作。自动创建的迁移会根据模型定义和数
+据库当前状态之间的差异生成 upgrade() 和 downgrade() 函数的内容。
+
+migrate 子命令用来自动创建迁移脚本:
+(venv) $ python hello.py db migrate -m "initial migration"
+
+
