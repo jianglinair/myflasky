@@ -1,0 +1,6 @@
+第6章 电子邮件
+Python 标准库中的 smtplib 包可用在 Flask 程序中发送电子邮件,但包装了 smtplib 的
+Flask-Mail 扩展能更好地和 Flask 集成。
+
+使用 Flask-Mail 提供电子邮件支持
+
