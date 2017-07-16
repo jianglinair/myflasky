@@ -1,11 +1,11 @@
 import os
-from datetime import datetime
+# from datetime import datetime
 
 from flask import Flask, render_template, session, redirect, url_for, flash
 from flask_script import Manager
 from flask_script import Shell
 from flask_bootstrap import Bootstrap
-from flask_moment import Moment
+# from flask_moment import Moment
 # "flask_wtf.Form" has been renamed to "FlaskForm" and will be removed in 1.0.
 # from flask_wtf import Form
 from flask_wtf import FlaskForm
@@ -14,31 +14,20 @@ from wtforms import StringField, SubmitField
 # from wtforms.validators import Required
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate, MigrateCommand
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+
 app = Flask(__name__)
-
-# SECRET_KEY is used by Flask-WTF
 app.config['SECRET_KEY'] = 'a secret string hard to guess'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
+# app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
-# SQLALCHEMY_DATABASE_URI 指定数据库文件
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
-                                        os.path.join(basedir, 'data.sqlite')
-# SQLALCHEMY_COMMIT_ON_TEARDOWN 设为True 时表示每次请求结束后自动提交数据库中的变动
-app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
-db = SQLAlchemy(app)  # db 对象是 SQLAlchemy 类的实例,表示程序使用的数据库，
-# 同时还获得了 Flask-SQLAlchemy提供的所有功能
-
+db = SQLAlchemy(app)
 manager = Manager(app)
 bootstrap = Bootstrap(app)
-moment = Moment(app)
-
-
-def make_shell_context():
-    return dict(app=app, db=db, User=User, Role=Role)
-
-
-manager.add_command('shell', Shell(make_context=make_shell_context))
+migrate = Migrate(app, db)
 
 
 # 这个表单中的字段都定义为类变量,类变量的值是相应字段类型的对象。在这个示例中,
@@ -121,6 +110,13 @@ def page_not_found(e):
 def internal_server_error(e):
     return render_template('500.html'), 500
 
+
+def make_shell_context():
+    return dict(app=app, db=db, User=User, Role=Role)
+
+
+manager.add_command('shell', Shell(make_context=make_shell_context))
+manager.add_command('db', MigrateCommand)
 
 if __name__ == '__main__':
     manager.run()
