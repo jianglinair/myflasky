@@ -1,0 +1,44 @@
+功能式架构
+
+在功能式架构中，按照每部分代码的功能来组织你的应用。所有模板放到同一个文件夹中，静态文件放在另一个文件夹中，而视图放在第三个文件夹中。
+
+yourapp/
+    __init__.py
+    static/
+    templates/
+        home/
+        control_panel/
+        admin/
+    views/
+        __init__.py
+        home.py
+        control_panel.py
+        admin.py
+    models.py
+除了yourapp/views/__init__.py，在yourapp/views/文件夹中的每一个.py文件都是一个蓝图。在yourapp/__init__.py中，，我们将加载这些蓝图并在我们的Flask()对象中注册它们。
+
+================================================================
+
+分区式架构
+
+在分区式架构中，按照每一部分所属的蓝图来组织你的应用。管理面板的所有的模板，视图和静态文件放在一个文件夹中，用户控制面板的则放在另一个文件夹中。
+
+yourapp/
+    __init__.py
+    admin/
+        __init__.py
+        views.py
+        static/
+        templates/
+    home/
+        __init__.py
+        views.py
+        static/
+        templates/
+    control_panel/
+        __init__.py
+        views.py
+        static/
+        templates/
+    models.py
+在像上面列举的分区式结构，每一个yourapp/之下的文件夹都是一个独立的蓝图。所有的蓝图通过顶级的__init__.py注册到Flask()中。

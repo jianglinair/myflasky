@@ -1,4 +1,5 @@
 from . import db
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 # 模型这个术语表示程序使用的持久化实体。在 ORM 中,模型一般是一个 Python 类,类中
@@ -29,6 +30,7 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
+    password_hash = db.Column(db.String(128))
     # 关系使用users表中的外键连接了两行。添加到User模型中的role_id列被定义为外键,
     # 就是这个外键建立起了关系。传给db.ForeignKey()的参数'roles.id'表明,这列的值是
     # roles表中行的id值。
@@ -36,3 +38,14 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User %r>' % self.username
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
